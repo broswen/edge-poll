@@ -1,0 +1,32 @@
+name = "edge-poll"
+# type = "javascript" is required to use the `[build]` section
+type = "javascript"
+account_id = ""
+workers_dev = true
+route = ""
+zone_id = ""
+compatibility_date = "2022-04-27"
+
+[[kv_namespaces]]
+binding = "POLLS"
+id = "4228ee13539c4d06a935288dbe11df8c"
+preview_id = ""
+
+[[kv_namespaces]]
+binding = "API_KEYS"
+id = "36a2a9edafb44b2cacaee7b164d69202"
+preview_id = ""
+
+[build]
+command = "npm install && npm test && npm run build"
+[build.upload]
+# The "modules" upload format is required for all projects that export a Durable Objects class
+format = "modules"
+main = "./index.mjs"
+
+[durable_objects]
+bindings = [{name = "POLL", class_name = "Poll"},{name = "POLL_SHARD", class_name = "PollShard"}]
+
+[[migrations]]
+tag = "v1" # Should be unique for each entry
+new_classes = ["Poll", "PollShard"]
