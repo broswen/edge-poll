@@ -48,7 +48,7 @@ async function handleRequest(request: Request, env: Env) {
         return new Response('must specify choice id', {status: 400})
       }
 
-      if (Number(req.id) >= Object.keys(pollState.choices).length) {
+      if (Number(req.id) >= Object.keys(pollState.choices).length || Number(req.id) < 0) {
         return new  Response('invalid choice', {status: 400})
       }
       const ip = request.headers.get('cf-connecting-ip') ?? ''
