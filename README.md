@@ -56,8 +56,10 @@ It holds state for all possible choices but only for a subset of user ids.
 
 #### Endpoints
 `PUT /`
+Check ip for duplicate vote, persist vote, send update to main Poll DO.
 
 `DELETE /`
+Purges persistent storage.
 
 ### Poll KV
 Used as read heavy data store for Poll DO data. The Poll DO will be updated synchronously and publish changes to KV, but all reads will be from KV.
@@ -69,4 +71,5 @@ KV namespace to check for valid API keys.
 
 ## TODO
 
-- [ ] 
+- [ ] use setTimeout to schedule shard update if skipped because of cooldown (use DO Alarms once they are GA)
+- [ ] DELETE /poll/:id should send a delete request to Poll DO and all Poll-Shard DOs, and remove config from KV.

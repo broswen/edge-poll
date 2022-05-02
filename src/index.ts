@@ -20,7 +20,9 @@ async function handleRequest(request: Request, env: Env) {
   const url = new URL(request.url)
   const parts = url.pathname.slice(1).split('/')
   if (request.method === 'POST' && parts.length === 1 && parts[0] === 'poll') {
-    // check api key is valid if creating a new poll
+    if (!(await validateAPIKey(request.headers.get('api-key'), env))) {
+      return new Response('unauthorized', {status: 401})
+    }
     const id = env.POLL.newUniqueId()
     const obj = env.POLL.get(id)
     return obj.fetch(request)
@@ -80,6 +82,11 @@ async function hashIP(ip: string): Promise<number> {
     hash += byte
   }
   return hash
+}
+
+async function validateAPIKey(key: string | null | undefined, env: Env): Promise<boolean> {
+  if (!key) return false
+  return (await env.API_KEYS.get(key)) !== null
 }
 
 export interface Env {
