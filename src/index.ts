@@ -38,7 +38,16 @@ async function handleRequest(request: Request, env: Env) {
       if (!state) {
         return new  Response('not found', {status: 404})
       }
-      return new  Response(JSON.stringify(state), {headers:{'Content-Type': 'application/json'}})
+      if (!url.searchParams.get('fresh') || url.searchParams.get('fresh') !== 'true') {
+        return new Response(JSON.stringify(state),{headers:{'Content-Type': 'application/json'}})
+      }
+      // TODO: cache here
+      const objId = env.POLL.idFromString(id)
+      const obj = env.POLL.get(objId)
+      let resp = await obj.fetch(request)
+      resp = new Response(resp.body, resp)
+      resp.headers.append('Content-Type', 'application/json')
+      return resp
     } else if (request.method === 'PUT') {
       if (Date.now() < pollState.start || Date.now() > pollState.end) {
         return new  Response('poll not active', {status: 400})
