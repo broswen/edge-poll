@@ -58,7 +58,7 @@ export class PollShard {
       }
       console.log('after', JSON.stringify(this.pollShardState))
       if (Date.now() - (this.pollShardState.lastUpdate) > SHARD_UPDATE_COOLDOWN) {
-        this.pollShardState.lastUpdate = Date.now()
+        this.pollShardState.lastUpdate = Date.now() + (Math.random()*1000) // 1 second random delay
         const update: ShardUpdate = {
           shard: this.state.id.toString(),
           choices: this.pollShardState.choices
