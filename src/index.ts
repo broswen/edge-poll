@@ -7,16 +7,16 @@ export { PollShard } from './PollShard'
 const encoder = new TextEncoder()
 
 export default {
-  async fetch(request: Request, env: Env) {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     try {
-      return await handleRequest(request, env)
+      return await handleRequest(request, env, ctx)
     } catch (e) {
       return new Response(`${e}`)
     }
   }
 }
 
-async function handleRequest(request: Request, env: Env) {
+async function handleRequest(request: Request, env: Env, ctx: ExecutionContext) {
   const url = new URL(request.url)
   const parts = url.pathname.slice(1).split('/')
   if (request.method === 'POST' && parts.length === 1 && parts[0] === 'poll') {
@@ -38,16 +38,21 @@ async function handleRequest(request: Request, env: Env) {
       if (!state) {
         return new  Response('not found', {status: 404})
       }
-      if (!url.searchParams.get('fresh') || url.searchParams.get('fresh') !== 'true') {
-        return new Response(JSON.stringify(state),{headers:{'Content-Type': 'application/json'}})
+      const cache = caches.default
+      let response = await cache.match(new Request(request.url))
+      if (!response) {
+        const objId = env.POLL.idFromString(id)
+        const obj = env.POLL.get(objId)
+        response = await obj.fetch(request)
+        response = new Response(response.body, response)
+        response.headers.append('Content-Type', 'application/json')
+        response.headers.append('Cache-Control', 's-maxage=10')
+        console.log({status: response.status, text: response.statusText})
+        ctx.waitUntil(cache.put(new Request(request.url), response.clone()))
+      } else {
+        console.log({message: 'cache hit', url: request.url})
       }
-      // TODO: cache here
-      const objId = env.POLL.idFromString(id)
-      const obj = env.POLL.get(objId)
-      let resp = await obj.fetch(request)
-      resp = new Response(resp.body, resp)
-      resp.headers.append('Content-Type', 'application/json')
-      return resp
+      return response
     } else if (request.method === 'PUT') {
       if (Date.now() < pollState.start || Date.now() > pollState.end) {
         return new  Response('poll not active', {status: 400})
