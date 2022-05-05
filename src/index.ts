@@ -38,16 +38,16 @@ async function handleRequest(request: Request, env: Env, ctx: ExecutionContext) 
       if (!state) {
         return new  Response('not found', {status: 404})
       }
-      const cache = caches.default
+      const cache = await caches.open('poll')
       let response = await cache.match(new Request(request.url))
       if (!response) {
+        console.log({message: 'cache miss', url: request.url})
         const objId = env.POLL.idFromString(id)
         const obj = env.POLL.get(objId)
         response = await obj.fetch(request)
         response = new Response(response.body, response)
         response.headers.append('Content-Type', 'application/json')
         response.headers.append('Cache-Control', 's-maxage=10')
-        console.log({status: response.status, text: response.statusText})
         ctx.waitUntil(cache.put(new Request(request.url), response.clone()))
       } else {
         console.log({message: 'cache hit', url: request.url})
