@@ -74,3 +74,7 @@ KV namespace to check for valid API keys.
 - [ ] use setTimeout to schedule shard update if skipped because of cooldown (use DO Alarms once they are GA)
 - [ ] DELETE /poll/:id should send a delete request to Poll DO and all Poll-Shard DOs, and remove config from KV.
 - [x] use cache instead of KV to get more recent results
+- [ ] implement SINGLE and MULTIPLE poll types, allow array of choice ids for multiple choice
+- [ ] poll type parameter in creation
+- [ ] poll response `id: number | number[]`
+- [ ] check against repeat ids and too many ids. `[1, 1, 1, 1...]` 
